@@ -1,10 +1,9 @@
-const fs = require('fs');
-const path = require('path');
-const { spawn } = require('child_process');
+'use strict';
+
 const express = require('express');
 const ipc = require('node-ipc');
-const ffmpegInstallation = require('@ffmpeg-installer/ffmpeg');
-const makeProcess = require('./lib/electron/make-process');
+const makeElectronProcess = require('./lib/electron/make-process');
+const manifests = require('./lib/pieces/manifests');
 const server = express();
 const PORT = 3000;
 
@@ -14,46 +13,60 @@ ipc.config.silent = true;
 ipc.serve();
 ipc.server.start();
 
+const pieceIds = manifests.map(({ id }) => id);
+
+const clientsByPieceId = {};
+
+pieceIds.forEach(id => {
+  clientsByPieceId[id] = [];
+  ipc.server.on(`${id}::streamdata`, message => {
+    const buffer = Buffer.from(message.data);
+    clientsByPieceId[id].forEach(client => {
+      client.write(buffer, 'binary');
+    });
+  });
+});
+
 server.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
-const electronProcess = makeProcess();
 
-const ffmpegProcess = spawn(ffmpegInstallation.path, [
-  '-i',
-  '-',
-  '-f',
-  'mp3',
-  'pipe:1',
-]);
+makeElectronProcess();
 
-ffmpegProcess.stderr.on('data', d => {
-  //console.log(`stderr: ${d}`);
-});
-ffmpegProcess.on('error', err => {
-  console.log(`Error: ${err.message}`);
-});
-ffmpegProcess.on('exit', (...args) => {
-  console.log(args);
-});
+server.get('/music/alex-bainter-:pieceId', (req, res) => {
+  const { pieceId } = req.params;
+  if (!pieceIds.includes(pieceId)) {
+    req.status(404).send('No such piece');
+  } else {
+    console.log(`${pieceId} connected`);
+    res.set('Cache-Control', 'no-cache, no-store');
+    res.set('Content-Type', 'audio/mpeg');
 
-const clients = [];
-ipc.server.on('streamdata', message => {
-  ffmpegProcess.stdin.write(Buffer.from(message.data));
-});
+    const clients = clientsByPieceId[pieceId];
 
-ffmpegProcess.stdout.on('data', d => {
-  clients.forEach(client => {
-    client.write(d, 'binary');
-  });
-});
-
-server.get('/alex-bainter-homage', (req, res) => {
-  res.set('Cache-Control', 'no-cache, no-store');
-  res.set('Content-Type', 'audio/mpeg');
-  res.on('close', () => {
-    const i = clients.indexOf(res);
-    if (i >= 0) {
-      clients.splice(i, 0);
+    if (clients.length === 0) {
+      console.log(`Express: requesting renderer for ${pieceId}`);
+      ipc.server.broadcast('start-render', pieceId);
     }
-  });
-  clients.push(res);
+
+    res.on('close', () => {
+      console.log(`${pieceId} closed`);
+      const i = clients.indexOf(res);
+      console.log(`index ${i}`);
+      if (i >= 0) {
+        clients.splice(i, 1);
+        if (clients.length === 0) {
+          console.log('stopping render');
+          ipc.server.broadcast('stop-render', pieceId);
+        }
+      }
+    });
+    // res.on('end', () => {
+    //   console.log(`${pieceId} ended`);
+    //   const i = clients.indexOf(res);
+    //   console.log(`index ${i}`);
+    //   if (i >= 0) {
+    //     clients.splice(i, 1);
+    //   }
+    // });
+    clients.push(res);
+  }
 });
