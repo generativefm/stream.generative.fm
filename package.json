@@ -35,7 +35,7 @@
     "@generative-music/piece-timbral-oscillations": "^2.15.0",
     "@generative-music/piece-townsend": "^2.15.0",
     "@generative-music/piece-trees": "^2.15.0",
-    "@generative-music/samples.generative.fm": "^1.11.1",
+    "@generative-music/samples.generative.fm": "^1.15.0",
     "electron": "^5.0.6",
     "express": "^4.17.1",
     "node-ipc": "^9.1.1",
