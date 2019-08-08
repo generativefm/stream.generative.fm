@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>stream.generative.fm</title>
+    <meta
+      name="description"
+      content="Server-side streaming for Generative.fm"
+    />
+    <meta name="author" content="Alex Bainter" />
+
+    <!-- <link rel="stylesheet" href="css/styles.css?v=1.0" /> -->
+  </head>
+
+  <body>
+    <%- manifests.map(({ id, title }) => `<div><a href="/music/alex-bainter-${id}">${title}</a></div>`).join('') %>
+  </body>
+</html>

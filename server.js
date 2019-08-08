@@ -10,6 +10,8 @@ const manifests = require('./lib/pieces/manifests');
 const server = express();
 const PORT = 3000;
 
+server.set('view engine', 'ejs');
+
 ipc.config.id = 'stream.generative.fm.express';
 ipc.config.retry = 1500;
 ipc.config.silent = true;
@@ -54,6 +56,11 @@ server.get('/samples/index.json', (req, res) => {
       res.json({ samples });
     }
   );
+});
+
+server.get(['/', '/index.html'], (req, res) => {
+  console.log('rendering');
+  res.render('index.ejs', { manifests });
 });
 
 checkSamplesPromise.then(() => {
