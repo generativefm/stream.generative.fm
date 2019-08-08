@@ -101,26 +101,26 @@ server.get('/music/alex-bainter-:pieceId', (req, res) => {
       ipc.server.broadcast('start-render', pieceId);
     }
 
-    // res.on('close', () => {
-    //   console.log(`${pieceId} closed`);
-    //   const i = clients.indexOf(res);
-    //   console.log(`index ${i}`);
-    //   if (i >= 0) {
-    //     clients.splice(i, 1);
-    //     if (clients.length === 0) {
-    //       console.log('stopping render');
-    //       ipc.server.broadcast('stop-render', pieceId);
-    //     }
-    //   }
-    // });
-    // res.on('end', () => {
-    //   console.log(`${pieceId} ended`);
-    //   const i = clients.indexOf(res);
-    //   console.log(`index ${i}`);
-    //   if (i >= 0) {
-    //     clients.splice(i, 1);
-    //   }
-    // });
+    const handleExit = () => {
+      const i = clients.indexOf(res);
+      if (i >= 0) {
+        clients.splice(i, 1);
+        if (clients.length === 0) {
+          ipc.server.broadcast('stop-render', pieceId);
+        }
+      }
+    };
+
+    res.on('close', () => {
+      setTimeout(() => {
+        handleExit();
+      }, 1000);
+    });
+    res.on('end', () => {
+      setTimeout(() => {
+        handleExit();
+      }, 1000);
+    });
     clients.push(res);
   }
 });
