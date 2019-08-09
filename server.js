@@ -5,10 +5,11 @@ const fs = require('fs').promises;
 const { R_OK } = require('fs').constants;
 const express = require('express');
 const ipc = require('node-ipc');
+const mimeTypes = require('mime-types');
 const makeElectronProcess = require('./lib/electron/make-process');
 const manifests = require('./lib/pieces/manifests');
+const { port } = require('./config.json');
 const server = express();
-const PORT = 3000;
 
 server.set('view engine', 'ejs');
 
@@ -59,7 +60,6 @@ server.get('/samples/index.json', (req, res) => {
 });
 
 server.get(['/', '/index.html'], (req, res) => {
-  console.log('rendering');
   res.render('index.ejs', { manifests });
 });
 
@@ -81,7 +81,7 @@ pieceIds.forEach(id => {
   });
 });
 
-server.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+server.listen(port, () => console.log(`Server listening on port ${port}`));
 
 makeElectronProcess();
 
@@ -90,14 +90,12 @@ server.get('/music/alex-bainter-:pieceId', (req, res) => {
   if (!pieceIds.includes(pieceId)) {
     req.status(404).send('No such piece');
   } else {
-    console.log(`${pieceId} connected`);
     res.set('Cache-Control', 'no-cache, no-store');
     res.set('Content-Type', 'audio/mpeg');
 
     const clients = clientsByPieceId[pieceId];
 
     if (clients.length === 0) {
-      console.log(`Express: requesting renderer for ${pieceId}`);
       ipc.server.broadcast('start-render', pieceId);
     }
 
