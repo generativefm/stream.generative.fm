@@ -23,3 +23,9 @@ Server-side streaming for music on Generative.fm
 4. Start the server (`npm start`)
 
 ## Usage
+
+By default, the site can be accessed at https://localhost:3000, which has links to each piece.
+
+## Configuration
+
+The port can be changed by stopping the server, modifying the value in config.json, and starting the server again with `npm start`
