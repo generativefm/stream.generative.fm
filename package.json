@@ -37,7 +37,7 @@
     "@generative-music/piece-trees": "^2.15.0",
     "@generative-music/samples.generative.fm": "^1.15.0",
     "ejs": "^2.6.2",
-    "electron": "^5.0.6",
+    "electron": "^9.4.0",
     "express": "^4.17.1",
     "mime-types": "^2.1.24",
     "node-ipc": "^9.1.1",
