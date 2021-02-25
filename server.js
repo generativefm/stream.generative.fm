@@ -88,7 +88,7 @@ makeElectronProcess();
 server.get('/music/alex-bainter-:pieceId', (req, res) => {
   const { pieceId } = req.params;
   if (!pieceIds.includes(pieceId)) {
-    req.status(404).send('No such piece');
+    res.status(404).send('No such piece');
   } else {
     res.set('Cache-Control', 'no-cache, no-store');
     res.set('Content-Type', 'audio/mpeg');
