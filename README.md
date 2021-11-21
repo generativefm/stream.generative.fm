@@ -1,3 +1,5 @@
+> **Archival Notice**: This experimental repository is archived, and there are no plans for any additional development or maintenance. Similar functionality may be added to Generative.fm in the future.
+
 # stream.generative.fm
 
 Server-side streaming for music on Generative.fm
